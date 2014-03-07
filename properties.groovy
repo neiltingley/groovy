@@ -18,12 +18,10 @@ import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 def bigMap = [:]
-def localPath = new File("c:\\temp\\dtp-resources.git\\.git");
+def localPath = new File("c:\\temp\\dtp-resources.git");
 cloneRepo(localPath)
-
-localRepo = new FileRepository(localPath);
-git = new Git(localRepo);
-
+def repo = new FileRepository(new File("c:\\temp\\dtp-resources.git\\.git"))
+git = new Git(repo);
 
 try {
     git.checkout()
@@ -37,16 +35,6 @@ try {
     println e.message
 
 }
-
-
-/*
-def resetCommand = new ResetCommand(newRepo)
-resetCommand
-        .setMode(ResetCommand.ResetType.HARD)
-        .setRef("5ad7deb3a3a872a6704079ca76dab9748c70ebdd..HEAD")
-        .call()
-*/
-
 
 def cloneRepo(File basedir) {
 
@@ -84,7 +72,7 @@ def slurpProperties(String dir) {
 
 }
 
-//slurpProperties( "c:\\workspace\\dtp-resources\\config\\environments")
+slurpProperties( localPath + "\\config\\environments")
 
 
 
