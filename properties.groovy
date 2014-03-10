@@ -9,31 +9,15 @@
 
 
  */
-
-
-import com.thoughtworks.xstream.io.xml.PrettyPrintWriter
-
-import java.util.Properties
-import groovy.transform.TypeChecked
 @Grab(group = 'org.eclipse.jgit', module = 'org.eclipse.jgit', version = '3.2.0.201312181205-r')
-
-import org.eclipse.jgit.api.CheckoutCommand
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.GitAPIException
 import org.eclipse.jgit.internal.storage.file.FileRepository
-import org.eclipse.jgit.lib.Ref
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-
 
 class PropertyFinder {
-    def Map bigMap1 = [:]
-    def Map bigMap2 = [:]
-    def String localPath = "c:\\temp\\dtp-resources.git"
-    def Git git
 
-    def PropertyFinder() {
+    def static String localPath = "c:\\temp\\dtp-resources.git"
 
-    }
 
     def clone() {
 
@@ -43,13 +27,13 @@ class PropertyFinder {
 
     }
 
-    def checkout(String hash) {
+    def checkout(String hash, String branch) {
 
         def repo = new FileRepository(new File(localPath + "\\.git"))
         def Git git = new Git(repo);
         try {
             git.checkout()
-                    .setName("develop")
+                    .setName(branch)
                     .setAllPaths(true)
                     .setStartPoint(hash)
                     .call()
@@ -61,7 +45,6 @@ class PropertyFinder {
             println e.message
 
         }
-
 
     }
 
@@ -76,12 +59,6 @@ class PropertyFinder {
                     .setDirectory(basedir)
                     .call()
         }
-
-//        def builder = new FileRepositoryBuilder()
-//        return builder.setGitDir(basedir)
-//                .readEnvironment()
-//                .findGitDir()
-//                .build()
 
     }
 
@@ -134,28 +111,43 @@ class PropertyFinder {
 
 
                     props1.each { j ->
-                        if ( j.value != props2[j.key] ) {
-                            println ( "Changed key: " + j.key + "\t" + j.value + '<--->' +  props2[j.key])
+                        if (j.value != props2[j.key]) {
+                            println("Changed key: " + j.key + "\t" + j.value + '<--->' + props2[j.key])
                         }
 
                     }
                 }
             }
-
-
         }
-
     }
 
-    def main() {
+    def void main(args) {
 
-        git = cloneRepo(localPath)
-        checkout("316d3728f2e3bdad4db7e037f94cadaaa0bf7fad")
+        def cli = new CliBuilder(usage: 'groovy properties.groovy -a -z -b')
+
+        cli.h(longOpt:'help', 'Show usage information and quit')
+        cli.a(argName:'start', longOpt:'start', args:1, required:true, 'Start commit hash')
+        cli.z(argName:'end', longOpt:'end', args:1, required:true, 'End commit hash')
+        cli.b(argName:'branch', longOpt:'branch', args:1, required:true, 'Git Branch')
+        def options = cli.parse(args)
+
+        if(!options) {
+            cli.usage
+            System.exit(1)
+        }
+
+
+        def Map bigMap1 = [:]
+        def Map bigMap2 = [:]
+        def hash1 = "316d3728f2e3bdad4db7e037f94cadaaa0bf7fad"
+        def hash2 = "d3810b9c30d2fe85496691b7900ffe47efc44600"
+        def branch = "develop"
+        cloneRepo(localPath)
+        checkout(hash1, branch)
         bigMap1 = slurpProperties(localPath + "\\config\\environments")
-        checkout("d3810b9c30d2fe85496691b7900ffe47efc44600")
+        checkout(hash2, branch)
         bigMap2 = slurpProperties(localPath + "\\config\\environments")
         compareTo(bigMap1, bigMap2)
-
 
     }
 
